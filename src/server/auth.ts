@@ -1,11 +1,9 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { compare } from "bcrypt";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
 
 import { env } from "~/env.mjs";
@@ -29,50 +27,10 @@ declare module "next-auth" {
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
-  session: {
-    strategy: "jwt",
-    maxAge: 60 * 60 * 24 * 7,
-  },
-  secret: env.NEXTAUTH_SECRET!,
   providers: [
     GithubProvider({
       clientId: env.GITHUB_ID,
       clientSecret: env.GITHUB_SECRET,
-    }),
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        username: { label: "Username", type: "text", placeholder: "" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.username || !credentials.password) {
-          return null;
-        }
-
-        const user = await db.user.findUnique({
-          where: {
-            username: credentials.username,
-          },
-        });
-
-        if (!user) {
-          return null;
-        }
-
-        const { password, ...otherUserData } = user;
-
-        const isPasswordValid = await compare(
-          credentials.password,
-          password ?? "",
-        );
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return otherUserData;
-      },
     }),
   ],
   callbacks: {
@@ -80,6 +38,14 @@ export const authOptions: NextAuthOptions = {
       const userId = user.id;
       const existingUser = await db.user.findUnique({
         where: { id: userId },
+        select: {
+          username: true,
+          email: true,
+          id: true,
+          image: true,
+          name: true,
+          createdAt: true,
+        },
       });
 
       if (!existingUser?.username) {
@@ -97,16 +63,6 @@ export const authOptions: NextAuthOptions = {
           id: userId,
         },
       };
-    },
-    jwt: ({ token, user }) => {
-      if (user) {
-        return {
-          ...token,
-          id: user.id,
-          email: user.email,
-        };
-      }
-      return token;
     },
   },
 };

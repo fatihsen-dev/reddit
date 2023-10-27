@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import NavLink from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AiFillGithub } from "react-icons/ai";
 import { Button } from "~/components/ui/button";
@@ -9,6 +10,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
 export default function Page() {
+  const router = useRouter();
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
@@ -65,7 +67,9 @@ export default function Page() {
             type="button"
             variant={"secondary"}
             className="!w-full gap-1.5"
-            onClick={() => signIn("github")}
+            onClick={async () => {
+              await signIn("github", { callbackUrl: "/" });
+            }}
           >
             <AiFillGithub className="text-xl" />
             Sign In With Github
