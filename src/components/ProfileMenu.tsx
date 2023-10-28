@@ -25,7 +25,7 @@ export default function ProfileMenu() {
         >
           <Avatar className="h-7 w-7">
             <AvatarImage
-              src="https://github.com/shadcn.png"
+              src={data?.user.image ?? ""}
               className="h-full w-full"
               alt={data?.user.name ?? ""}
             />

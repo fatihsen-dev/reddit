@@ -1,19 +1,21 @@
 import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
-import { registerBody } from "~/validation/register-body";
+import { registerSchema } from "~/validation/register";
 
 type BodyT = {
   username: string;
   email: string;
   password: string;
+  name: string;
+  surname: string;
 };
 
 export const POST = async (req: Request) => {
   try {
     const data = (await req.json()) as BodyT;
 
-    const response = registerBody.safeParse(data);
+    const response = registerSchema.safeParse(data);
     if (!response.success) {
       console.log(response.error);
       return NextResponse.json(
@@ -41,7 +43,7 @@ export const POST = async (req: Request) => {
 
     const existingUserEmail = await db.user.findUnique({
       where: {
-        username: data.username,
+        email: data.email,
       },
     });
 
@@ -54,14 +56,17 @@ export const POST = async (req: Request) => {
       );
     }
 
-    const user = await db.user.create({
+    await db.user.create({
       data: {
         username: data.username,
         email: data.email,
+        name: `${data.name} ${data.surname}`,
         password: await hashPassword(data.password, 12),
       },
     });
-    return NextResponse.json({ message: user });
+    return NextResponse.json({
+      message: "Welcome aboard, you can log in now 😊",
+    });
   } catch (error) {
     console.log(error);
     return NextResponse.json(

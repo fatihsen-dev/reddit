@@ -1,8 +1,8 @@
-import "~/styles/globals.css";
-
 import { Inter } from "next/font/google";
+import { Toaster } from "~/components/ui/toaster";
 import AuthProvider from "~/providers/AuthProvider";
 import { ThemeProvider } from "~/providers/ThemeProvider";
+import "~/styles/globals.css";
 import Navbar from "~/ui/Navbar";
 
 const inter = Inter({
@@ -35,6 +35,7 @@ export default function RootLayout({
               <Navbar />
               {children}
             </div>
+            <Toaster />
           </ThemeProvider>
         </AuthProvider>
       </body>
