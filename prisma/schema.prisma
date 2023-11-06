@@ -75,6 +75,7 @@ model VerificationToken {
 model Post {
     id        Int       @id @default(autoincrement())
     title     String
+    slug      String
     content   String?
     user      User      @relation(fields: [userId], references: [id])
     userId    String
