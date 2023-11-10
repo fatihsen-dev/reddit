@@ -9,6 +9,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
 
 import { env } from "~/env.mjs";
+import { getGithubUser } from "~/libs/utils/get-github-user";
 import { db } from "~/server/db";
 
 declare module "next-auth" {
@@ -58,6 +59,13 @@ export const authOptions: NextAuthOptions = {
           where: {
             username: credentials.username,
           },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+            password: true,
+          },
         });
 
         if (!user || !(await compare(credentials.password, user.password!))) {
@@ -71,16 +79,41 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    session: ({ session, token }) => {
+    session: async ({ session, token }) => {
       const { password, picture, sub, jti, updatedAt, iat, exp, ...other } =
         token;
 
-      return {
-        ...session,
-        user: {
-          ...other,
-        },
-      };
+      if (!other.username) {
+        const user = await db.user.update({
+          data: {
+            username: await getGithubUser(other.email ?? ""),
+          },
+          select: {
+            name: true,
+            email: true,
+            username: true,
+            image: true,
+            id: true,
+          },
+          where: {
+            email: other.email ?? "",
+          },
+        });
+
+        return {
+          ...session,
+          user: {
+            ...user,
+          },
+        };
+      } else {
+        return {
+          ...session,
+          user: {
+            ...other,
+          },
+        };
+      }
     },
     jwt: ({ token, user }) => {
       if (user) {
