@@ -1,9 +1,11 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { compare } from "bcrypt";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
 
 import { env } from "~/env.mjs";
@@ -27,42 +29,100 @@ declare module "next-auth" {
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
+  pages: {
+    signIn: "/login",
+  },
+  session: {
+    strategy: "jwt",
+  },
   providers: [
     GithubProvider({
       clientId: env.GITHUB_ID,
       clientSecret: env.GITHUB_SECRET,
     }),
+    CredentialsProvider({
+      name: "Sign in",
+      credentials: {
+        username: {
+          label: "Username",
+          type: "text",
+          placeholder: "USERNAME",
+        },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.username || !credentials.password) {
+          return null;
+        }
+
+        const user = await db.user.findUnique({
+          where: {
+            username: credentials.username,
+          },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+            password: true,
+          },
+        });
+
+        if (!user || !(await compare(credentials.password, user.password!))) {
+          return null;
+        }
+
+        return {
+          ...user,
+        };
+      },
+    }),
   ],
   callbacks: {
-    session: async ({ session, user }) => {
-      const userId = user.id;
-      const existingUser = await db.user.findUnique({
-        where: { id: userId },
-        select: {
-          username: true,
-          email: true,
-          id: true,
-          image: true,
-          name: true,
-          createdAt: true,
-        },
-      });
+    session: async ({ session, token }) => {
+      const { password, picture, sub, jti, updatedAt, iat, exp, ...other } =
+        token;
 
-      if (!existingUser?.username) {
-        await db.user.update({
-          where: { id: userId },
-          data: { username: await getGithubUser(user.email) },
+      if (!other.username) {
+        const user = await db.user.update({
+          data: {
+            username: await getGithubUser(other.email ?? ""),
+          },
+          select: {
+            name: true,
+            email: true,
+            username: true,
+            image: true,
+            id: true,
+          },
+          where: {
+            email: other.email ?? "",
+          },
         });
-      }
 
-      return {
-        ...session,
-        user: {
-          ...session.user,
-          ...existingUser,
-          id: userId,
-        },
-      };
+        return {
+          ...session,
+          user: {
+            ...user,
+          },
+        };
+      } else {
+        return {
+          ...session,
+          user: {
+            ...other,
+          },
+        };
+      }
+    },
+    jwt: ({ token, user }) => {
+      if (user) {
+        return {
+          ...token,
+          ...user,
+        };
+      }
+      return token;
     },
   },
 };

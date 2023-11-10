@@ -23,8 +23,7 @@
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
-    --tw-ring-offset-color: 0;
+    --radius: 0.3rem;
   }
 
   .dark {
@@ -52,9 +51,13 @@
 
 @layer base {
   * {
-    @apply border-border outline-none;
+    @apply list-none border-border outline-none;
   }
   body {
-    @apply h-screen bg-background text-foreground;
+    @apply h-full bg-background;
+  }
+  input,
+  textarea {
+    @apply focus-visible:!ring-transparent;
   }
 }

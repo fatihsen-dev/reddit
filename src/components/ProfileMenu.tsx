@@ -2,7 +2,7 @@
 
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { LogOut, User2 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import {
@@ -10,10 +10,11 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { useAuthStore } from "~/store/auth";
+import Avatar from "./Avatar";
 
 export default function ProfileMenu() {
-  const { data } = useSession();
+  const { user } = useAuthStore();
   const router = useRouter();
 
   return (
@@ -23,21 +24,14 @@ export default function ProfileMenu() {
           variant="ghost"
           className="h-10 justify-start gap-2 focus-visible:ring-transparent"
         >
-          <Avatar className="h-7 w-7">
-            <AvatarImage
-              src="https://github.com/shadcn.png"
-              className="h-full w-full"
-              alt={data?.user.name ?? ""}
-            />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
-          <span>{data?.user.name}</span>
+          <Avatar fullName={user?.name ?? ""} url={user?.image ?? ""} />
+          <span>{user?.name}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-48">
         <DropdownMenuItem className="flex">
           <Button
-            onClick={() => router.push(`/u/${data?.user.username}`)}
+            onClick={() => router.push(`/u/${user?.username}`)}
             variant="ghost"
             className="h-9 w-full justify-start gap-1.5 px-2"
           >

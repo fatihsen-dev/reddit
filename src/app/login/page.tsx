@@ -1,66 +1,113 @@
 "use client";
 
+import { useForm } from "react-hook-form";
+import type z from "zod";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import NavLink from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AiFillGithub } from "react-icons/ai";
 import { Button } from "~/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { useToast } from "~/components/ui/use-toast";
+import { loginSchema } from "~/validation/login";
+
+type ResponseT = {
+  error: string | undefined;
+  status: number;
+  ok: boolean;
+  url: string | null;
+};
 
 export default function Page() {
+  const searchParams = useSearchParams();
+  const callback = searchParams.get("callback");
   const router = useRouter();
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const { toast } = useToast();
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
 
-  const signInHandle = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-
-    const response = await signIn("credentials", {
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
+    const response = (await signIn("credentials", {
       redirect: false,
-      username,
-      password,
-    });
-
-    console.log(response);
-  };
+      ...values,
+    })) as ResponseT;
+    if (!response.ok) {
+      toast({
+        variant: "destructive",
+        description: "Credentials do not match!",
+      });
+    } else {
+      toast({
+        description: "You're logged in, welcome 😊",
+      });
+      if (callback) {
+        router.replace(callback);
+      } else {
+        router.replace("/");
+      }
+    }
+  }
 
   return (
-    <div className="flex items-start justify-center pt-48">
+    <div className="flex items-start justify-center pt-28">
       <div className="w-full max-w-md rounded-md border p-5 px-6 shadow">
-        <h1>Sign In</h1>
+        <h1 className="mb-1 text-xl font-medium">Sign In</h1>
         <span className="text-sm opacity-50">{"Choose your login method"}</span>
-        <form onSubmit={signInHandle} className="mt-6 grid gap-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="username" className="text-left">
-              Username
-            </Label>
-            <Input
-              value={username}
-              onInput={(e) => setUsername(e.currentTarget.value)}
-              id="username"
-              placeholder="USERNAME"
-              className="col-span-3"
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="mt-6 grid gap-4 space-y-1"
+          >
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input placeholder="USERNAME" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="password" className="text-left">
-              Password
-            </Label>
-            <Input
-              value={password}
-              onInput={(e) => setPassword(e.currentTarget.value)}
-              type="password"
-              id="password"
-              placeholder="**********"
-              className="col-span-3"
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="***********"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <Button className="!w-full" type="submit">
-            Sign In
-          </Button>
-        </form>
+            <Button type="submit" disabled={!form.formState.isValid}>
+              Sign In
+            </Button>
+          </form>
+        </Form>
         <div className="mt-5 grid gap-5">
           <hr className="border" />
           <Button
@@ -68,17 +115,19 @@ export default function Page() {
             variant={"secondary"}
             className="!w-full gap-1.5"
             onClick={async () => {
-              await signIn("github", { callbackUrl: "/" });
+              await signIn("github", {
+                callbackUrl: callback ? callback : "/",
+              });
             }}
           >
             <AiFillGithub className="text-xl" />
             Sign In With Github
           </Button>
-          <NavLink href="/register">
+          <Link href="/register">
             <Button type="button" variant={"link"} className="!w-full gap-1.5">
               Sign Up
             </Button>
-          </NavLink>
+          </Link>
         </div>
       </div>
     </div>

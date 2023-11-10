@@ -1,9 +1,8 @@
-import "~/styles/globals.css";
-
 import { Inter } from "next/font/google";
 import AuthProvider from "~/providers/AuthProvider";
+import { LayoutProvider } from "~/providers/LayoutProvider";
 import { ThemeProvider } from "~/providers/ThemeProvider";
-import Navbar from "~/ui/Navbar";
+import "~/styles/globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,19 +23,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable}`}>
-        <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <div className="container h-full">
-              <Navbar />
-              {children}
-            </div>
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <LayoutProvider>{children}</LayoutProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
