@@ -8,7 +8,7 @@ import { Button } from "~/components/ui/button";
 export default function Navbar() {
   const { status } = useSession();
   return (
-    <nav className="flex items-center justify-between py-5">
+    <nav className="sticky top-0 z-20 flex items-center justify-between bg-background py-5">
       <div>
         <NextLink href="/">
           <h1 className="text-xl font-semibold">Reddit</h1>
