@@ -17,7 +17,6 @@ export const POST = async (req: Request) => {
 
     const response = registerSchema.safeParse(data);
     if (!response.success) {
-      console.log(response.error);
       return NextResponse.json(
         {
           message: response.error.issues[0]?.message,
