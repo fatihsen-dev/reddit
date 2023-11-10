@@ -1,13 +1,11 @@
 "use client";
-
-import { useForm } from "react-hook-form";
-import type z from "zod";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { AiFillGithub } from "react-icons/ai";
+import type z from "zod";
 import { Button } from "~/components/ui/button";
 import {
   Form,
@@ -55,7 +53,7 @@ export default function Page() {
   }
 
   return (
-    <div className="flex items-start justify-center pt-14">
+    <div className="flex items-start justify-center pt-12">
       <div className="w-full max-w-xl rounded-md border p-5 px-6 shadow">
         <h1 className="mb-1 text-xl font-medium">Sign Up</h1>
         <span className="text-sm opacity-50">Choose your register method</span>
