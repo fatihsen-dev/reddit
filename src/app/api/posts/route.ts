@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { errorHandler } from "~/libs/error";
 import { db } from "~/server/db";
 
 export const GET = async () => {
@@ -28,10 +29,10 @@ export const GET = async () => {
 
     return NextResponse.json(posts);
   } catch (error) {
-    console.log(error);
+    const err = errorHandler(error as Error);
     return NextResponse.json(
-      { message: "something went wrong" },
-      { status: 500 },
+      { message: err.message },
+      { status: err.statusCode },
     );
   }
 };

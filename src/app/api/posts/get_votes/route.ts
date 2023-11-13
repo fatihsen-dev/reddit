@@ -1,9 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { errorHandler } from "~/libs/error";
+import { sessionCheck } from "~/libs/sessionCheck";
 import { db } from "~/server/db";
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
   try {
-    const userId = req.nextUrl.searchParams.get("id");
+    const session = await sessionCheck();
+
+    const userId = session.user.id;
 
     if (!userId) {
       return NextResponse.json(
@@ -23,10 +27,10 @@ export const GET = async (req: NextRequest) => {
 
     return NextResponse.json(votes);
   } catch (error) {
-    console.log(error);
+    const err = errorHandler(error as Error);
     return NextResponse.json(
-      { message: "something went wrong" },
-      { status: 500 },
+      { message: err.message },
+      { status: err.statusCode },
     );
   }
 };

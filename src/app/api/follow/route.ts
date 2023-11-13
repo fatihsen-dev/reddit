@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { errorHandler } from "~/libs/error";
+import { sessionCheck } from "~/libs/sessionCheck";
 import { db } from "~/server/db";
 
 type BodyT = {
   followedId: string;
-  followerId: string;
 };
 
 const bodySchema = z.object({
   followedId: z.string({ required_error: "followedId required" }),
-  followerId: z.string({ required_error: "followerId required" }),
 });
 
 export const POST = async (req: Request) => {
   try {
     const body = (await req.json()) as BodyT;
+    const session = await sessionCheck();
 
     const response = bodySchema.safeParse(body);
     if (!response.success) {
@@ -29,7 +30,7 @@ export const POST = async (req: Request) => {
     const isFollowed = await db.userFollower.findFirst({
       where: {
         followedId: body.followedId,
-        followerId: body.followerId,
+        followerId: session.user.id,
       },
     });
 
@@ -45,7 +46,7 @@ export const POST = async (req: Request) => {
     await db.userFollower.create({
       data: {
         followedId: body.followedId,
-        followerId: body.followerId,
+        followerId: session.user.id,
       },
     });
 
@@ -77,10 +78,10 @@ export const POST = async (req: Request) => {
     }
     return NextResponse.json({ message: "User not followed" }, { status: 404 });
   } catch (error) {
-    console.log(error);
+    const err = errorHandler(error as Error);
     return NextResponse.json(
-      { message: "something went wrong" },
-      { status: 500 },
+      { message: err.message },
+      { status: err.statusCode },
     );
   }
 };
