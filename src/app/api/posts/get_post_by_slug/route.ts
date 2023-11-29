@@ -17,6 +17,7 @@ export const GET = async (req: NextRequest) => {
     const post = await db.post.findFirst({
       where: {
         slug: slug,
+        public: true,
       },
       include: {
         user: {
@@ -24,8 +25,7 @@ export const GET = async (req: NextRequest) => {
             id: true,
             name: true,
             username: true,
-            image: true,
-            comments: true,
+            avatar: true,
           },
         },
         votes: {
@@ -44,7 +44,35 @@ export const GET = async (req: NextRequest) => {
             postId: true,
           },
         },
-        comments: true,
+        comments: {
+          where: {
+            parent: null,
+          },
+          select: {
+            content: true,
+            createdAt: true,
+            user: {
+              select: {
+                name: true,
+                username: true,
+                avatar: true,
+              },
+            },
+            replies: {
+              select: {
+                content: true,
+                createdAt: true,
+                user: {
+                  select: {
+                    name: true,
+                    username: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         _count: {
           select: {
             votes: true,

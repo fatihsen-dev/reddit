@@ -4,7 +4,7 @@ export interface IProfile {
   desc: string;
   emailVerified: null | boolean;
   id: string;
-  image: string;
+  avatar: string;
   name: string;
   updatedAt: string;
   username: string;

@@ -61,7 +61,7 @@ export const POST = async (req: Request) => {
         desc: true,
         email: true,
         emailVerified: true,
-        image: true,
+        avatar: true,
         createdAt: true,
         updatedAt: true,
         _count: {

@@ -7,7 +7,7 @@ import { editProfileSchema } from "~/validation/editProfile";
 type BodyT = {
   name: string;
   surname: string;
-  image: string;
+  avatar: string;
   desc: string;
 };
 
@@ -31,7 +31,7 @@ export const POST = async (req: Request) => {
     const user = await db.user.update({
       data: {
         name: `${body.name} ${body.surname}`,
-        image: body.image,
+        avatar: body.avatar,
         desc: body.desc,
       },
       where: {
@@ -44,7 +44,7 @@ export const POST = async (req: Request) => {
         username: true,
         email: true,
         emailVerified: true,
-        image: true,
+        avatar: true,
         createdAt: true,
         updatedAt: true,
         following: {

@@ -27,7 +27,7 @@ export const GET = async () => {
         username: true,
         email: true,
         emailVerified: true,
-        image: true,
+        avatar: true,
         createdAt: true,
         updatedAt: true,
         following: {

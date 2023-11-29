@@ -25,7 +25,7 @@ export const GET = async (request: NextRequest) => {
         desc: true,
         email: true,
         emailVerified: true,
-        image: true,
+        avatar: true,
         createdAt: true,
         updatedAt: true,
         _count: {
