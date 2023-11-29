@@ -1,11 +1,9 @@
-import { Prisma } from ".prisma/client";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { errorHandler } from "~/libs/error";
 import { sessionCheck } from "~/libs/sessionCheck";
 import { db } from "~/server/db";
-import PrismaClientKnownRequestError = Prisma.PrismaClientKnownRequestError;
 
 type BodyT = {
   postId: number;
