@@ -31,29 +31,34 @@ import { useAuthStore } from "~/store/auth";
 import type { IUser } from "~/types/user";
 import { editProfileSchema } from "~/validation/editProfile";
 
-export default function EditProfile() {
+interface IProps {
+  getProfile: () => void;
+}
+
+export default function EditProfile({ getProfile }: IProps) {
   const [open, setOpen] = useState(false);
   const { user, authUserFn } = useAuthStore();
+
   const form = useForm<z.infer<typeof editProfileSchema>>({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
-      name: user?.name.split(" ")[0] ?? "",
-      surname: user?.name.split(" ")[1] ?? "",
-      image: user?.image ?? "",
-      desc: user?.desc,
+      name: user?.name?.split(" ")[0] ?? "",
+      surname: user?.name?.split(" ")[1] ?? "",
+      avatar: user?.avatar ?? "",
+      desc: user?.desc ?? "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof editProfileSchema>) {
     try {
-      const { data } = await axios.post<IUser>("/api/update_profile", {
+      await axios.post<IUser>("/api/update_profile", {
         ...values,
-        id: user?.id,
       });
-      authUserFn(data.id);
+      authUserFn();
       setOpen(false);
+      getProfile();
     } catch (error) {
-      authUserFn(null);
+      authUserFn();
     }
   }
 
@@ -109,7 +114,7 @@ export default function EditProfile() {
               />
               <FormField
                 control={form.control}
-                name="image"
+                name="avatar"
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-4 items-center gap-4">
                     <FormLabel className="text-right text-sm">
