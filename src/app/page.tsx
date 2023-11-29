@@ -1,18 +1,16 @@
 "use client";
 import { useState } from "react";
-import PostCreate from "~/components/PostCreate";
 import TabList from "~/components/TabList";
 import Feed from "./Feed";
-import Friends from "./Friends";
+import Following from "./Following";
 
 export default function Page() {
-  const [activeTab, setActiveTab] = useState<"feed" | "friends">("feed");
+  const [activeTab, setActiveTab] = useState<"feed" | "following">("feed");
 
   return (
     <div className="grid grid-rows-[auto_1fr] gap-5">
       <TabList activeTab={activeTab} setActiveTab={setActiveTab} />
-      <PostCreate />
-      {activeTab === "feed" ? <Feed /> : <Friends />}
+      {activeTab === "feed" ? <Feed /> : <Following />}
     </div>
   );
 }
