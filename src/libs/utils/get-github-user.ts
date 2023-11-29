@@ -1,3 +1,5 @@
+import type { GithubProfile } from "next-auth/providers/github";
+
 export const getGithubUser = async (email: string): Promise<string> => {
   try {
     const response = await fetch(
@@ -16,4 +18,10 @@ export const randomUserName = () => {
 
 export function getRandomNumber(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+interface IResponse {
+  total_count: number;
+  incomplete_results: boolean;
+  items: GithubProfile[];
 }
