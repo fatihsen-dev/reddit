@@ -1,28 +1,23 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { errorHandler } from "~/libs/error";
+import { sessionCheck } from "~/libs/sessionCheck";
 import { db } from "~/server/db";
 import { editProfileSchema } from "~/validation/editProfile";
 
 type BodyT = {
-  id: string;
   name: string;
   surname: string;
-  image: string;
+  avatar: string;
   desc: string;
 };
-
-const extendEditProfileSchema = editProfileSchema.extend({
-  id: z
-    .string({ required_error: "Id required" })
-    .min(2, { message: "Id can be a minimum of 3 characters" })
-    .max(100, { message: "Id can be maximum 12 characters" }),
-});
 
 export const POST = async (req: Request) => {
   try {
     const body = (await req.json()) as BodyT;
+    const response = editProfileSchema.safeParse(body);
 
-    const response = extendEditProfileSchema.safeParse(body);
+    const session = await sessionCheck();
+
     if (!response.success) {
       console.log(response.error);
       return NextResponse.json(
@@ -36,11 +31,11 @@ export const POST = async (req: Request) => {
     const user = await db.user.update({
       data: {
         name: `${body.name} ${body.surname}`,
-        image: body.image,
+        avatar: body.avatar,
         desc: body.desc,
       },
       where: {
-        id: body.id,
+        id: session.user.id,
       },
       select: {
         id: true,
@@ -49,7 +44,7 @@ export const POST = async (req: Request) => {
         username: true,
         email: true,
         emailVerified: true,
-        image: true,
+        avatar: true,
         createdAt: true,
         updatedAt: true,
         following: {
@@ -71,10 +66,10 @@ export const POST = async (req: Request) => {
     }
     return NextResponse.json({ message: "User not updated" }, { status: 404 });
   } catch (error) {
-    console.log(error);
+    const err = errorHandler(error as Error);
     return NextResponse.json(
-      { message: "something went wrong" },
-      { status: 500 },
+      { message: err.message },
+      { status: err.statusCode },
     );
   }
 };

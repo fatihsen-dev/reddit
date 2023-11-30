@@ -1,20 +1,22 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { errorHandler } from "~/libs/error";
+import { sessionCheck } from "~/libs/sessionCheck";
 import { db } from "~/server/db";
 
 type BodyT = {
   postId: number;
-  userId: string;
 };
 
 const bodySchema = z.object({
   postId: z.number({ required_error: "postId required" }),
-  userId: z.string({ required_error: "userId required" }),
 });
 
-export const POST = async (req: Request) => {
+export const POST = async (req: NextRequest) => {
   try {
     const body = (await req.json()) as BodyT;
+    const session = await sessionCheck();
 
     const response = bodySchema.safeParse(body);
     if (!response.success) {
@@ -29,77 +31,40 @@ export const POST = async (req: Request) => {
     await db.unVote.deleteMany({
       where: {
         postId: body.postId,
-        userId: body.userId,
+        userId: session.user.id,
       },
     });
 
     const isVoted = await db.vote.findFirst({
       where: {
         postId: body.postId,
-        userId: body.userId,
+        userId: session.user.id,
       },
     });
-
-    const getPost = async () => {
-      return await db.post.findUnique({
-        where: {
-          id: body.postId,
-        },
-        include: {
-          user: {
-            select: {
-              username: true,
-            },
-          },
-          _count: {
-            select: {
-              votes: true,
-              unVotes: true,
-              comments: true,
-            },
-          },
-        },
-      });
-    };
 
     if (isVoted) {
       await db.vote.deleteMany({
         where: {
           postId: body.postId,
-          userId: body.userId,
+          userId: session.user.id,
         },
       });
 
-      const post = await getPost();
-
-      if (!post) {
-        return NextResponse.json(
-          { message: "Post not found" },
-          { status: 404 },
-        );
-      }
-
-      return NextResponse.json(post);
+      return NextResponse.json({ message: "remove-vote" });
     }
     await db.vote.create({
       data: {
         postId: body.postId,
-        userId: body.userId,
+        userId: session.user.id,
       },
     });
 
-    const post = await getPost();
-
-    if (!post) {
-      return NextResponse.json({ message: "Post not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(post);
+    return NextResponse.json({ message: "vote" });
   } catch (error) {
-    console.log(error);
+    const err = errorHandler(error as Error);
     return NextResponse.json(
-      { message: "something went wrong" },
-      { status: 500 },
+      { message: err.message },
+      { status: err.statusCode },
     );
   }
 };

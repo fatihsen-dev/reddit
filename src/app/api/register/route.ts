@@ -1,5 +1,6 @@
 import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
+import { errorHandler } from "~/libs/error";
 import { db } from "~/server/db";
 import { registerSchema } from "~/validation/register";
 
@@ -67,10 +68,10 @@ export const POST = async (req: Request) => {
       message: "Welcome aboard, you can log in now 😊",
     });
   } catch (error) {
-    console.log(error);
+    const err = errorHandler(error as Error);
     return NextResponse.json(
-      { message: "something went wrong" },
-      { status: 500 },
+      { message: err.message },
+      { status: err.statusCode },
     );
   }
 };

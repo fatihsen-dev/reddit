@@ -1,8 +1,8 @@
 "use client";
 
 interface IProps {
-  activeTab: "feed" | "friends";
-  setActiveTab: (val: "feed" | "friends") => void;
+  activeTab: "feed" | "following";
+  setActiveTab: (val: "feed" | "following") => void;
 }
 
 export default function TabList({ activeTab, setActiveTab }: IProps) {
@@ -19,14 +19,14 @@ export default function TabList({ activeTab, setActiveTab }: IProps) {
         Feed
       </button>
       <button
-        onClick={() => setActiveTab("friends")}
+        onClick={() => setActiveTab("following")}
         className={`flex items-center justify-center rounded-md border border-neutral-400/10 p-2.5 py-1.5 font-light transition-colors ${
-          activeTab === "friends"
+          activeTab === "following"
             ? "bg-blue-400/10 dark:bg-neutral-400/10"
             : "bg-neutral-400/[.025]"
         }`}
       >
-        Friends
+        Following
       </button>
     </div>
   );

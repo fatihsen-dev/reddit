@@ -15,7 +15,7 @@ model User {
     email         String?        @unique
     password      String?
     emailVerified DateTime?
-    image         String?
+    avatar        String?
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
@@ -108,11 +108,14 @@ model UnVote {
 }
 
 model Comment {
-    id        Int      @id @default(autoincrement())
+    id        Int       @id @default(autoincrement())
+    parentId  Int?
     content   String?
-    user      User     @relation(fields: [userId], references: [id])
+    user      User      @relation(fields: [userId], references: [id])
     userId    String
-    post      Post     @relation(fields: [postId], references: [id])
+    post      Post      @relation(fields: [postId], references: [id])
     postId    Int
-    createdAt DateTime @default(now())
+    createdAt DateTime  @default(now())
+    replies   Comment[] @relation("CommentToComment")
+    parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
 }

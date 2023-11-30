@@ -1,5 +1,4 @@
 "use client";
-
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 import { LogOut, User2 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -24,7 +23,7 @@ export default function ProfileMenu() {
           variant="ghost"
           className="h-10 justify-start gap-2 focus-visible:ring-transparent"
         >
-          <Avatar fullName={user?.name ?? ""} url={user?.image ?? ""} />
+          <Avatar fullName={user?.name ?? ""} url={user?.avatar ?? ""} />
           <span>{user?.name}</span>
         </Button>
       </DropdownMenuTrigger>
@@ -36,7 +35,7 @@ export default function ProfileMenu() {
             className="h-9 w-full justify-start gap-1.5 px-2"
           >
             <User2 className="h-5 w-5" />
-            <span>My Account</span>
+            <span>Profile</span>
           </Button>
         </DropdownMenuItem>
         <DropdownMenuItem className="flex">

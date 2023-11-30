@@ -7,6 +7,7 @@ import {
 } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
+import type { GithubProfile } from "next-auth/providers/github";
 
 import { env } from "~/env.mjs";
 import { getGithubUser } from "~/libs/utils/get-github-user";
@@ -20,7 +21,7 @@ declare module "next-auth" {
       username: string | null;
       email: string | null;
       emailVerified: Date | null;
-      image: string | null;
+      avatar: string | null;
       createdAt: Date;
       updatedAt: Date;
     } & DefaultSession["user"];
@@ -39,6 +40,15 @@ export const authOptions: NextAuthOptions = {
     GithubProvider({
       clientId: env.GITHUB_ID,
       clientSecret: env.GITHUB_SECRET,
+      profile(profile: GithubProfile) {
+        return {
+          id: String(profile?.id),
+          name: profile?.name ?? "",
+          username: profile?.login ?? "",
+          email: profile?.email ?? "",
+          avatar: profile?.avatar_url ?? "",
+        };
+      },
     }),
     CredentialsProvider({
       name: "Sign in",
@@ -74,6 +84,7 @@ export const authOptions: NextAuthOptions = {
 
         return {
           ...user,
+          image: "",
         };
       },
     }),
@@ -92,7 +103,7 @@ export const authOptions: NextAuthOptions = {
             name: true,
             email: true,
             username: true,
-            image: true,
+            avatar: true,
             id: true,
           },
           where: {

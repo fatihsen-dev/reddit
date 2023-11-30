@@ -1,7 +1,7 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import axios from "axios";
+import type { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import type z from "zod";
 import { Button } from "~/components/ui/button";
@@ -14,11 +14,10 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { useAuthStore } from "~/store/auth";
-import { usePostStore } from "~/store/posts";
 import type { IPost } from "~/types/post";
 import { createPostSchema } from "~/validation/createPost";
-import { Checkbox } from "./ui/checkbox";
-import { Textarea } from "./ui/textarea";
+import { Checkbox } from "../ui/checkbox";
+import { Textarea } from "../ui/textarea";
 
 type IExtendtedPost = IPost & {
   user: { username: string };
@@ -29,9 +28,13 @@ type IExtendtedPost = IPost & {
   };
 };
 
-export default function PostCreate() {
+interface IProps {
+  setPosts: Dispatch<SetStateAction<IExtendtedPost[]>>;
+  posts: IExtendtedPost[];
+}
+
+export default function PostCreate({ setPosts, posts }: IProps) {
   const { user } = useAuthStore();
-  const { newPost } = usePostStore();
   const form = useForm<z.infer<typeof createPostSchema>>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
@@ -46,7 +49,7 @@ export default function PostCreate() {
         userId: user?.id,
         ...values,
       });
-      newPost(data);
+      setPosts([data, ...posts]);
       form.reset();
     } catch (error) {
       console.log(error);

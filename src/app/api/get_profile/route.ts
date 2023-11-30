@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { errorHandler } from "~/libs/error";
 import { db } from "~/server/db";
 
 export const GET = async (request: NextRequest) => {
@@ -25,7 +25,7 @@ export const GET = async (request: NextRequest) => {
         desc: true,
         email: true,
         emailVerified: true,
-        image: true,
+        avatar: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -41,13 +41,11 @@ export const GET = async (request: NextRequest) => {
       return NextResponse.json(user);
     }
     return NextResponse.json({ message: "User not found" }, { status: 404 });
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      return NextResponse.json({ message: e.message }, { status: 500 });
-    }
+  } catch (error) {
+    const err = errorHandler(error as Error);
     return NextResponse.json(
-      { message: "something went wrong" },
-      { status: 500 },
+      { message: err.message },
+      { status: err.statusCode },
     );
   }
 };
