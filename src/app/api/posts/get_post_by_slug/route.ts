@@ -48,9 +48,19 @@ export const GET = async (req: NextRequest) => {
           where: {
             parent: null,
           },
+          orderBy: {
+            createdAt: "asc",
+          },
           select: {
+            id: true,
             content: true,
             createdAt: true,
+            _count: {
+              select: {
+                votes: true,
+                unVotes: true,
+              },
+            },
             user: {
               select: {
                 name: true,
@@ -60,8 +70,15 @@ export const GET = async (req: NextRequest) => {
             },
             replies: {
               select: {
+                id: true,
                 content: true,
                 createdAt: true,
+                _count: {
+                  select: {
+                    votes: true,
+                    unVotes: true,
+                  },
+                },
                 user: {
                   select: {
                     name: true,

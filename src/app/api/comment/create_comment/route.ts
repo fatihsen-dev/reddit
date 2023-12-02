@@ -53,8 +53,15 @@ export const POST = async (req: Request) => {
             parent: null,
           },
           select: {
+            id: true,
             content: true,
             createdAt: true,
+            _count: {
+              select: {
+                votes: true,
+                unVotes: true,
+              },
+            },
             user: {
               select: {
                 name: true,
@@ -64,8 +71,15 @@ export const POST = async (req: Request) => {
             },
             replies: {
               select: {
+                id: true,
                 content: true,
                 createdAt: true,
+                _count: {
+                  select: {
+                    votes: true,
+                    unVotes: true,
+                  },
+                },
                 user: {
                   select: {
                     name: true,

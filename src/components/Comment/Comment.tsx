@@ -2,26 +2,15 @@
 
 import Link from "next/link";
 import { timeAgo } from "~/libs/utils/formatDate";
-import Avatar from "../Avatar";
 import { variants } from "~/libs/variants";
+import type { IComment } from "~/types/comment";
+import Avatar from "../Avatar";
+import VoteBtn from "./VoteBtn";
 
 interface IProps {
-  content: string;
-  createdAt: Date;
-  user: {
-    name: string;
-    username: string;
-    avatar: string | null;
-  };
-  replies: {
-    content: string;
-    createdAt: Date;
-    user: {
-      name: string;
-      username: string;
-      avatar: string | null;
-    };
-  }[];
+  comment: IComment;
+  commentVotes: { commentId: number }[];
+  commentUnVotes: { commentId: number }[];
   variant:
     | {
         bg: string;
@@ -31,11 +20,9 @@ interface IProps {
 }
 
 export default function Comment({
-  content,
-  createdAt,
-  variant,
-  user,
-  replies,
+  comment,
+  commentVotes,
+  commentUnVotes,
 }: IProps) {
   return (
     <li>
@@ -43,27 +30,34 @@ export default function Comment({
         className={`${variants.default.bg} rounded border p-3 ${variants.default.border}`}
       >
         <div className={`mb-2 flex items-center justify-between`}>
-          <Link href={`/u/${user.username}`}>
+          <Link href={`/u/${comment.user.username}`}>
             <div className="flex items-center gap-1.5 hover:underline">
               <Avatar
                 className="h-6 w-6"
-                fullName={user?.name ?? ""}
-                url={user?.avatar ?? ""}
+                fullName={comment.user?.name ?? ""}
+                url={comment.user?.avatar ?? ""}
               />
-              <span className="text-sm">{user?.name}</span>
+              <span className="text-sm">{comment.user?.name}</span>
             </div>
           </Link>
           <span className="text-xs font-light text-foreground/80">
-            {timeAgo(createdAt.toString())}
+            {timeAgo(comment.createdAt.toString())}
           </span>
         </div>
-        <p className="text-sm">{content}</p>
+        <p className="text-sm">{comment.content}</p>
+        <div className="flex items-center justify-start">
+          <VoteBtn
+            comment={comment}
+            commentVotes={commentVotes}
+            commentUnVotes={commentUnVotes}
+          />
+        </div>
       </div>
-      {replies.length > 0 && (
+      {comment.replies && comment.replies.length > 0 && (
         <ul
           className={`mt-2 grid content-start gap-2 border-l-[3rem] !border-neutral-400/[0.01] pl-2`}
         >
-          {replies.map((replie, key) => (
+          {comment.replies.map((replie, key) => (
             <li key={key}>
               <div
                 className={`${variants.default.bg} rounded border p-3 ${variants.default.border}`}
@@ -84,6 +78,13 @@ export default function Comment({
                   </span>
                 </div>
                 <p className="text-sm">{replie.content}</p>
+                <div className="flex items-center justify-start">
+                  <VoteBtn
+                    comment={replie}
+                    commentVotes={commentVotes}
+                    commentUnVotes={commentUnVotes}
+                  />
+                </div>
               </div>
             </li>
           ))}

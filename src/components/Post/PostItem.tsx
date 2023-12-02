@@ -7,7 +7,6 @@ import { variants } from "~/libs/variants";
 import type { IPost } from "~/types/post";
 import ShareBtn from "./ShareBtn";
 import VoteBtn from "./VoteBtn";
-import { usePathname } from "next/navigation";
 
 export type IComponentPost = IPost & {
   user: { username: string };
@@ -25,7 +24,6 @@ export interface IProps {
 }
 
 export default function PostItem({ data, votes, unVotes }: IProps) {
-  const pathname = usePathname();
   const [post, setPost] = useState<IComponentPost>(data);
   const [isVoted, setIsVoted] = useState<boolean>(false);
   const [isUnVoted, setIsUnVoted] = useState<boolean>(false);
