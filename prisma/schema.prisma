@@ -8,24 +8,26 @@ datasource db {
 }
 
 model User {
-    id            String         @id @default(cuid())
-    name          String?
-    username      String?        @unique
-    desc          String?
-    email         String?        @unique
-    password      String?
-    emailVerified DateTime?
-    avatar        String?
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
-    votes         Vote[]
-    unVotes       UnVote[]
-    comments      Comment[]
-    createdAt     DateTime       @default(now())
-    updatedAt     DateTime       @updatedAt
-    followers     UserFollower[] @relation("followedTo")
-    following     UserFollower[] @relation("followerTo")
+    id             String          @id @default(cuid())
+    name           String?
+    username       String?         @unique
+    desc           String?
+    email          String?         @unique
+    password       String?
+    emailVerified  DateTime?
+    avatar         String?
+    accounts       Account[]
+    sessions       Session[]
+    posts          Post[]
+    votes          Vote[]
+    unVotes        UnVote[]
+    comments       Comment[]
+    commentVotes   CommentVote[]
+    commentUnVotes CommentUnVote[]
+    createdAt      DateTime        @default(now())
+    updatedAt      DateTime        @updatedAt
+    followers      UserFollower[]  @relation("followedTo")
+    following      UserFollower[]  @relation("followerTo")
 }
 
 model UserFollower {
@@ -108,14 +110,34 @@ model UnVote {
 }
 
 model Comment {
-    id        Int       @id @default(autoincrement())
+    id        Int             @id @default(autoincrement())
     parentId  Int?
     content   String?
-    user      User      @relation(fields: [userId], references: [id])
+    user      User            @relation(fields: [userId], references: [id])
     userId    String
-    post      Post      @relation(fields: [postId], references: [id])
+    post      Post            @relation(fields: [postId], references: [id])
     postId    Int
-    createdAt DateTime  @default(now())
-    replies   Comment[] @relation("CommentToComment")
-    parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
+    createdAt DateTime        @default(now())
+    replies   Comment[]       @relation("CommentToComment")
+    parent    Comment?        @relation("CommentToComment", fields: [parentId], references: [id])
+    votes     CommentVote[]
+    unVotes   CommentUnVote[]
+}
+
+model CommentVote {
+    id        Int      @id @default(autoincrement())
+    user      User     @relation(fields: [userId], references: [id])
+    userId    String
+    comment   Comment  @relation(fields: [commentId], references: [id])
+    commentId Int
+    createdAt DateTime @default(now())
+}
+
+model CommentUnVote {
+    id        Int      @id @default(autoincrement())
+    user      User     @relation(fields: [userId], references: [id])
+    userId    String
+    comment   Comment  @relation(fields: [commentId], references: [id])
+    commentId Int
+    createdAt DateTime @default(now())
 }

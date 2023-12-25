@@ -10,6 +10,7 @@ import CreateComment from "~/components/Comment/CreateComment";
 import VoteBtn from "~/components/Post/VoteBtn";
 import { timeAgo } from "~/libs/utils/formatDate";
 import { variants } from "~/libs/variants";
+import type { IComment } from "~/types/comment";
 import type { IPost } from "~/types/post";
 
 export interface IProps {
@@ -33,26 +34,7 @@ export type IPagePost = IPost & {
       postId: number;
     },
   ];
-  comments: [
-    {
-      content: string;
-      createdAt: Date;
-      user: {
-        name: string;
-        username: string;
-        avatar: string | null;
-      };
-      replies: {
-        content: string;
-        createdAt: Date;
-        user: {
-          name: string;
-          username: string;
-          avatar: string | null;
-        };
-      }[];
-    },
-  ];
+  comments: IComment[];
   _count: {
     votes: number;
     unVotes: number;
@@ -61,6 +43,10 @@ export type IPagePost = IPost & {
 };
 
 export default function PostListItem({ params: { slug } }: IProps) {
+  const [commentVotes, setCommentVotes] = useState<{ commentId: number }[]>([]);
+  const [commentUnVotes, setCommentUnVotes] = useState<{ commentId: number }[]>(
+    [],
+  );
   const { status } = useSession();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [post, setPost] = useState<IPagePost>();
@@ -83,22 +69,46 @@ export default function PostListItem({ params: { slug } }: IProps) {
   };
 
   useEffect(() => {
-    axios
-      .get<IPagePost>(`/api/posts/get_post_by_slug?slug=${slug}`)
-      .then((response) => {
-        const { data } = response;
-        setPost(data);
-        setIsVoted(data.votes.length > 0);
-        setIsUnVoted(data.unVotes.length > 0);
-        setVariant(
-          Object.values(variants)[(new Date(data.createdAt).getTime() % 4) + 1],
-        );
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setIsLoading(false);
-      });
+    if (slug) {
+      axios
+        .get<IPagePost>(`/api/posts/get_post_by_slug?slug=${slug}`)
+        .then((response) => {
+          const { data } = response;
+          setPost(data);
+          setIsVoted(data.votes.length > 0);
+          setIsUnVoted(data.unVotes.length > 0);
+          setVariant(
+            Object.values(variants)[
+              (new Date(data.createdAt).getTime() % 4) + 1
+            ],
+          );
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          console.log(err);
+          setIsLoading(false);
+        });
+      axios
+        .get<{ commentId: number }[]>(`/api/comment/get_votes?slug=${slug}`)
+        .then((response) => {
+          const { data } = response;
+          setCommentVotes(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          setCommentVotes([]);
+        });
+      axios
+        .get<{ commentId: number }[]>(`/api/comment/get_unvotes?slug=${slug}`)
+        .then((response) => {
+          const { data } = response;
+          setCommentUnVotes(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          setCommentUnVotes([]);
+        });
+    }
   }, [slug]);
 
   return (
@@ -186,10 +196,9 @@ export default function PostListItem({ params: { slug } }: IProps) {
                   <Comment
                     key={key}
                     variant={variant}
-                    createdAt={comment.createdAt}
-                    content={comment.content}
-                    user={comment.user}
-                    replies={comment.replies}
+                    comment={comment}
+                    commentVotes={commentVotes}
+                    commentUnVotes={commentUnVotes}
                   />
                 ))}
               </ul>
